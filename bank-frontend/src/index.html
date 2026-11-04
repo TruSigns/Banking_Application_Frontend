@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en" ng-app="bankApp">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simple Bank</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body ng-controller="BankController as vm" ng-cloak>
+    <header>
+      <h1>Simple Bank</h1>
+      <span class="badge" ng-if="vm.usingMock">Mock API</span>
+    </header>
+
+    <div id="flash" style="display: none"></div>
+
+    <section>
+      <h2>Accounts</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Number</th>
+            <th>Owner</th>
+            <th>Type</th>
+            <th class="num">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            ng-repeat="a in vm.accounts track by a.accountNumber"
+            ng-click="vm.select(a)"
+            ng-class="{selected: vm.selected.accountNumber === a.accountNumber}"
+          >
+            <td>{{a.accountNumber}}</td>
+            <td>{{a.ownerName}}</td>
+            <td>{{a.type}}</td>
+            <td class="num">{{a.balance | currency}}</td>
+          </tr>
+          <tr ng-if="!vm.accounts.length">
+            <td colspan="4">No accounts</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Open account</h2>
+      <form ng-submit="vm.openAccount()" novalidate>
+        <input ng-model="vm.newAccount.ownerName" placeholder="Owner name" />
+        <select ng-model="vm.newAccount.type">
+          <option value="CHECKING">Checking</option>
+          <option value="SAVINGS">Savings</option>
+        </select>
+        <input
+          type="number"
+          ng-model="vm.newAccount.initialDeposit"
+          step="0.01"
+          placeholder="Initial deposit"
+        />
+        <button type="submit">Open</button>
+      </form>
+    </section>
+
+    <section ng-if="vm.selected">
+      <h2>
+        {{vm.selected.accountNumber}} &mdash; {{vm.selected.balance | currency}}
+      </h2>
+      <input
+        type="number"
+        ng-model="vm.amount"
+        step="0.01"
+        placeholder="Amount"
+      />
+      <button ng-click="vm.deposit()">Deposit</button>
+      <button ng-click="vm.withdraw()">Withdraw</button>
+
+      <h3>History</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th class="num">Amount</th>
+            <th class="num">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="t in vm.transactions track by t.id">
+            <td>{{t.createdAt | date:'short'}}</td>
+            <td>{{t.type}}</td>
+            <td>{{t.description}}</td>
+            <td class="num">{{t.amount | currency}}</td>
+            <td class="num">{{t.balanceAfter | currency}}</td>
+          </tr>
+          <tr ng-if="!vm.transactions.length">
+            <td colspan="5">No transactions yet</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Transfer</h2>
+      <form ng-submit="vm.doTransfer()" novalidate>
+        <select
+          ng-model="vm.transfer.fromAccount"
+          ng-options="a.accountNumber as (a.accountNumber + ' - ' + a.ownerName) for a in vm.accounts"
+        >
+          <option value="">From...</option>
+        </select>
+        <select
+          ng-model="vm.transfer.toAccount"
+          ng-options="a.accountNumber as (a.accountNumber + ' - ' + a.ownerName) for a in vm.accounts"
+        >
+          <option value="">To...</option>
+        </select>
+        <input
+          type="number"
+          ng-model="vm.transfer.amount"
+          step="0.01"
+          placeholder="Amount"
+        />
+        <button type="submit">Transfer</button>
+      </form>
+    </section>
+
+    <!-- jQuery must load before AngularJS so angular.element uses full jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.3/angular.min.js"></script>
+
+    <!-- Module first, then config, services, controllers -->
+    <script src="app/app.module.js"></script>
+    <script src="app/app.config.js"></script>
+    <script src="app/services/flash.service.js"></script>
+    <script src="app/services/http-bank-api.service.js"></script>
+    <script src="app/services/mock-bank-api.service.js"></script>
+    <script src="app/services/bank-api.service.js"></script>
+    <script src="app/controllers/bank.controller.js"></script>
+  </body>
+</html>
